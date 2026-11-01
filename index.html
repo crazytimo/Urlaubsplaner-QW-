@@ -455,26 +455,38 @@
             ]
         };
 
-        // Load from localStorage
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('urlaubsplaner_data');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.employees) appState.employees = parsed.employees;
-                    if (parsed.year) appState.year = parsed.year;
-                    if (parsed.state) appState.state = parsed.state;
-                    if (parsed.ferienState) appState.ferienState = parsed.ferienState;
-                } catch(e) {
-                    console.error("Fehler beim Laden:", e);
-                }
-            }
-        }
+        // Tragen Sie hier Ihre npoint.io URL ein:
+const NPOINT_URL = https://api.npoint.io/f928eb85ffc7f2e6e86b;
 
-        // Save to localStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('urlaubsplaner_data', JSON.stringify(appState));
+// Daten von npoint.io laden
+async function loadFromCloud() {
+    try {
+        const response = await fetch(NPOINT_URL);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.employees) appState.employees = data.employees;
+            if (data.year) appState.year = data.year;
+            if (data.state) appState.state = data.state;
+            if (data.ferienState) appState.ferienState = data.ferienState;
+            render();
         }
+    } catch (e) {
+        console.error("Fehler beim Laden von npoint:", e);
+    }
+}
+
+// Daten an npoint.io speichern
+async function saveToCloud() {
+    try {
+        await fetch(NPOINT_URL, {
+            method: 'POST', // oder PUT, je nach npoint-Konfiguration
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appState)
+        });
+    } catch (e) {
+        console.error("Fehler beim Speichern auf npoint:", e);
+    }
+}
 
         function getEasterSunday(year) {
             const a = year % 19;
