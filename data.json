@@ -11,7 +11,9 @@
       "role": "Qualität",
       "vacationDays": 35,
       "restDays": 0,
-      "entries": {}
+      "entries": {
+        "2027-01-04": "U"
+      }
     }
   ]
 }
