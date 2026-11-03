@@ -2,8 +2,26 @@
   "year": 2026,
   "state": "BW",
   "ferienState": "BW",
+  "selectedMonth": 0,
+  "activeStatus": "U",
   "employees": [
-    { "id": "1", "name": "Anna Schmidt", "role": "Frontend Dev", "vacationDays": 30, "restDays": 2, "entries": {} },
-    { "id": "2", "name": "Markus Weber", "role": "Projektleiter", "vacationDays": 30, "restDays": 0, "entries": {} }
+    {
+      "id": "1",
+      "name": "Anna Schmidt",
+      "role": "Frontend Dev",
+      "vacationDays": 30,
+      "restDays": 2,
+      "entries": {
+        "2026-01-07": "U"
+      }
+    },
+    {
+      "id": "2",
+      "name": "Markus Weber",
+      "role": "Projektleiter",
+      "vacationDays": 30,
+      "restDays": 0,
+      "entries": {}
+    }
   ]
 }
