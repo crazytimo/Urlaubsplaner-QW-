@@ -364,7 +364,18 @@
         const GITHUB_USERNAME  = "crazytimo";
         const GITHUB_REPO      = "Urlaubsplaner-QW-";
         const GITHUB_FILE_PATH = "data.json";
-        const GITHUB_TOKEN     = "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";
+
+        // Sichere Token-Abfrage (wird lokal im Browser gespeichert, kein Hardcoding = kein GitHub-Block)
+        function getGitHubToken() {
+            let token = localStorage.getItem("github_pat_urlaubsplaner");
+            if (!token) {
+                token = prompt("Bitte geben Sie einmalig Ihr GitHub Personal Access Token (PAT) ein:\n(Es wird nur lokal auf Ihrem PC gespeichert)");
+                if (token) {
+                    localStorage.setItem("github_pat_urlaubsplaner", token.trim());
+                }
+            }
+            return token ? token.trim() : "";
+        }
 
         let currentFileSHA = "";
 
@@ -461,7 +472,7 @@
             try {
                 const response = await fetch(url, {
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Authorization': `token ${getGitHubToken()}`,
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
@@ -507,7 +518,7 @@
                 const response = await fetch(url, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Authorization': `token ${getGitHubToken()}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/vnd.github.v3+json'
                     },
@@ -1160,3 +1171,105 @@
                 render();
                 saveToGitHub();
             };
+
+            document.getElementById("btn-export-csv").onclick = exportCSV;
+            document.getElementById("btn-print").onclick = () => window.print();
+
+            document.getElementById("btn-backup-json").onclick = exportJSON;
+            document.getElementById("btn-restore-json").onclick = () => {
+                document.getElementById("input-restore-file").click();
+            };
+            document.getElementById("input-restore-file").onchange = importJSON;
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            const card = modal.querySelector('div');
+            modal.classList.remove("hidden");
+            setTimeout(() => {
+                modal.classList.remove("opacity-0");
+                card.classList.remove("scale-95");
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            const card = modal.querySelector('div');
+            modal.classList.add("opacity-0");
+            card.classList.add("scale-95");
+            setTimeout(() => {
+                modal.classList.add("hidden");
+            }, 200);
+        }
+
+        function exportCSV() {
+            let csv = "\uFEFF";
+            let dates = [];
+            let current = new Date(appState.year, 0, 1);
+            while (current.getFullYear() === appState.year) {
+                dates.push(new Date(current));
+                current.setDate(current.getDate() + 1);
+            }
+
+            let header = ["Mitarbeiter", "Rolle", "Jahresurlaub", "Resturlaub Vorjahr", "Genommen", "Resturlaub Verbleibend"];
+            dates.forEach(d => header.push(`${d.getDate()}.${d.getMonth() + 1}.${appState.year}`));
+            csv += header.join(";") + "\n";
+
+            appState.employees.forEach(emp => {
+                const stats = calculateEmployeeStats(emp, appState.year, appState.state);
+                let row = [`"${emp.name}"`, `"${emp.role || ''}"`, emp.vacationDays, emp.restDays, stats.taken, stats.remaining];
+                dates.forEach(d => {
+                    const iso = formatDateISO(d);
+                    row.push(`"${emp.entries ? (emp.entries[iso] || "") : ""}"`);
+                });
+                csv += row.join(";") + "\n";
+            });
+
+            downloadFile(csv, `Urlaubsplan_${appState.year}_${appState.state}.csv`, 'text/csv;charset=utf-8;');
+        }
+
+        function exportJSON() {
+            const jsonStr = JSON.stringify(appState, null, 2);
+            downloadFile(jsonStr, `Urlaubsplaner_Backup_${appState.year}.json`, 'application/json');
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.employees) appState.employees = data.employees;
+                    if (data.year) appState.year = data.year;
+                    if (data.state) appState.state = data.state;
+                    if (data.ferienState) appState.ferienState = data.ferienState;
+                    render();
+                    saveToGitHub();
+                    alert("Backup erfolgreich wiederhergestellt!");
+                } catch (err) {
+                    alert("Fehler beim Lesen der JSON-Datei.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        window.onload = () => {
+            initUI();
+            loadFromGitHub();
+        };
+    </script>
+</body>
+</html>
