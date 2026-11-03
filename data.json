@@ -3,7 +3,7 @@
   "state": "BW",
   "ferienState": "BW",
   "selectedMonth": 0,
-  "activeStatus": "u",
+  "activeStatus": "U",
   "employees": [
     {
       "id": "d426133f-87fb-488c-9e16-1c7bac36ec7e",
@@ -11,7 +11,9 @@
       "role": "Qualität",
       "vacationDays": 35,
       "restDays": 0,
-      "entries": {}
+      "entries": {
+        "2026-01-02": "U"
+      }
     }
   ]
 }
