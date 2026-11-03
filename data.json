@@ -1,0 +1,9 @@
+{
+  "year": 2026,
+  "state": "BW",
+  "ferienState": "BW",
+  "employees": [
+    { "id": "1", "name": "Anna Schmidt", "role": "Frontend Dev", "vacationDays": 30, "restDays": 2, "entries": {} },
+    { "id": "2", "name": "Markus Weber", "role": "Projektleiter", "vacationDays": 30, "restDays": 0, "entries": {} }
+  ]
+}
