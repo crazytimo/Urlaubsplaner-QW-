@@ -2,8 +2,8 @@
   "year": 2026,
   "state": "BW",
   "ferienState": "BW",
-  "selectedMonth": 1,
-  "activeStatus": "HO",
+  "selectedMonth": 0,
+  "activeStatus": "U",
   "employees": [
     {
       "id": "d426133f-87fb-488c-9e16-1c7bac36ec7e",
@@ -12,7 +12,6 @@
       "vacationDays": 35,
       "restDays": 0,
       "entries": {
-        "2026-01-02": "U",
         "2026-01-05": "U",
         "2026-01-07": "U",
         "2026-01-08": "U",
