@@ -364,99 +364,9 @@
         const GITHUB_USERNAME  = "crazytimo";
         const GITHUB_REPO      = "Urlaubsplaner-QW-";
         const GITHUB_FILE_PATH = "data.json";
-        const GITHUB_TOKEN     = "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"; // Hier github_pat_... eintragen
+        const GITHUB_TOKEN     = "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";
 
-       let currentFileSHA = ""; // Wird von GitHub benötigt, um bestehende Dateien zu überschreiben
-
-// 1. Laden der Daten direkt aus dem GitHub Repository
-async function loadFromGitHub() {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
-    
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-
-        if (response.ok) {
-            const fileData = await response.json();
-            currentFileSHA = fileData.sha; // SHA-Hash sichern für spätere Updates
-            
-            // Base64-dekodierten Inhalt verarbeiten (UTF-8 Unterstützung)
-            const decodedContent = decodeURIComponent(escape(atob(fileData.content)));
-            const data = JSON.parse(decodedContent);
-
-            if (data.employees) appState.employees = data.employees;
-            if (data.year) appState.year = data.year;
-            if (data.state) appState.state = data.state;
-            if (data.ferienState) appState.ferienState = data.ferienState;
-
-            updateSyncBadge(true, "GitHub Sync Active");
-            render();
-        } else {
-            console.error("Fehler beim Laden von GitHub:", response.statusText);
-            updateSyncBadge(false, "Ladefehler (GitHub)");
-        }
-    } catch (e) {
-        console.error("Netzwerkfehler GitHub API:", e);
-        updateSyncBadge(false, "Netzwerk blockiert");
-    }
-}
-
-// 2. Speichern der Daten zurück in das GitHub Repository
-async function saveToGitHub() {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
-    
-    // JSON in Base64 umwandeln (UTF-8 sicher)
-    const jsonString = JSON.stringify(appState, null, 2);
-    const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
-
-    const bodyData = {
-        message: "Update Urlaubsplaner Data via Web-App",
-        content: encodedContent,
-        sha: currentFileSHA // Benötigt, um die existierende Datei zu aktualisieren
-    };
-
-    try {
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify(bodyData)
-        });
-
-        if (response.ok) {
-            const responseData = await response.json();
-            currentFileSHA = responseData.content.sha; // Neuen SHA nach dem Speichern aktualisieren
-            updateSyncBadge(true, "Gespeichert in GitHub");
-        } else {
-            console.error("Fehler beim Speichern in GitHub:", response.statusText);
-            updateSyncBadge(false, "Speicherfehler");
-        }
-    } catch (e) {
-        console.error("Fehler beim Senden an GitHub API:", e);
-        updateSyncBadge(false, "Netzwerkfehler");
-    }
-}
-
-// Hilfsfunktion zur Anzeige des Status-Badges
-function updateSyncBadge(success, message) {
-    const badge = document.getElementById("sync-badge");
-    if (!badge) return;
-    
-    if (success) {
-        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200";
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${message}`;
-    } else {
-        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200";
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${message}`;
-    }
-}
+        let currentFileSHA = "";
 
         const GERMAN_STATES = {
             "BW": "Baden-Württemberg",
@@ -545,7 +455,7 @@ function updateSyncBadge(success, message) {
             }
         }
 
-        async function loadFromCloud() {
+        async function loadFromGitHub() {
             const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
             
             try {
@@ -568,19 +478,19 @@ function updateSyncBadge(success, message) {
                     if (data.state) appState.state = data.state;
                     if (data.ferienState) appState.ferienState = data.ferienState;
 
-                    updateSyncBadge(true, "GitHub Cloud Synced");
+                    updateSyncBadge(true, "GitHub Sync Active");
                     render();
                 } else {
                     console.error("Fehler beim Laden von GitHub:", response.statusText);
-                    updateSyncBadge(false, "Ladefehler GitHub");
+                    updateSyncBadge(false, "Ladefehler (GitHub)");
                 }
             } catch (e) {
                 console.error("Netzwerkfehler GitHub API:", e);
-                updateSyncBadge(false, "Netzwerkfehler");
+                updateSyncBadge(false, "Netzwerk blockiert");
             }
         }
 
-        async function saveToCloud() {
+        async function saveToGitHub() {
             const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
             updateSyncBadge(false, "Speichere...");
             
@@ -588,7 +498,7 @@ function updateSyncBadge(success, message) {
             const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
             const bodyData = {
-                message: "Update Urlaubsplaner data via Web-App",
+                message: "Update Urlaubsplaner Data via Web-App",
                 content: encodedContent,
                 sha: currentFileSHA
             };
@@ -610,7 +520,7 @@ function updateSyncBadge(success, message) {
                     updateSyncBadge(true, "Gespeichert in GitHub");
                 } else {
                     console.error("Fehler beim Speichern in GitHub:", response.statusText);
-                    updateSyncBadge(false, "Fehler beim Speichern");
+                    updateSyncBadge(false, "Speicherfehler");
                 }
             } catch (e) {
                 console.error("Fehler beim Senden an GitHub API:", e);
@@ -729,7 +639,6 @@ function updateSyncBadge(success, message) {
 
             renderMonthTabs();
             setupEventListeners();
-            loadFromCloud();
         }
 
         function renderMonthTabs() {
@@ -972,7 +881,7 @@ function updateSyncBadge(success, message) {
             }
 
             render();
-            saveToCloud();
+            saveToGitHub();
         }
 
         function updateOverallStats() {
@@ -1090,7 +999,7 @@ function updateSyncBadge(success, message) {
                 if (!isNaN(parsed) && parsed >= 0) {
                     emp.vacationDays = parsed;
                     render();
-                    saveToCloud();
+                    saveToGitHub();
                 }
             }
         };
@@ -1116,7 +1025,7 @@ function updateSyncBadge(success, message) {
             if (confirm(`Möchten Sie den Mitarbeiter "${emp.name}" wirklich löschen?`)) {
                 appState.employees = appState.employees.filter(e => e.id !== empId);
                 render();
-                saveToCloud();
+                saveToGitHub();
             }
         };
 
@@ -1124,24 +1033,24 @@ function updateSyncBadge(success, message) {
             document.getElementById("prev-year").onclick = () => {
                 appState.year--;
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
             document.getElementById("next-year").onclick = () => {
                 appState.year++;
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
 
             document.getElementById("state-select").onchange = (e) => {
                 appState.state = e.target.value;
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
 
             document.getElementById("ferien-select").onchange = (e) => {
                 appState.ferienState = e.target.value;
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
 
             document.getElementById("btn-bridge-modal").onclick = openBridgeRadarModal;
@@ -1195,7 +1104,7 @@ function updateSyncBadge(success, message) {
 
                 closeModal("modal-employee");
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
 
             document.getElementById("btn-range-modal").onclick = () => {
@@ -1249,106 +1158,5 @@ function updateSyncBadge(success, message) {
 
                 closeModal("modal-range");
                 render();
-                saveToCloud();
+                saveToGitHub();
             };
-
-            document.getElementById("btn-export-csv").onclick = exportCSV;
-            document.getElementById("btn-print").onclick = () => window.print();
-
-            document.getElementById("btn-backup-json").onclick = exportJSON;
-            document.getElementById("btn-restore-json").onclick = () => {
-                document.getElementById("input-restore-file").click();
-            };
-            document.getElementById("input-restore-file").onchange = importJSON;
-        }
-
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            const card = modal.querySelector('div');
-            modal.classList.remove("hidden");
-            setTimeout(() => {
-                modal.classList.remove("opacity-0");
-                card.classList.remove("scale-95");
-            }, 10);
-        }
-
-        function closeModal(id) {
-            const modal = document.getElementById(id);
-            const card = modal.querySelector('div');
-            modal.classList.add("opacity-0");
-            card.classList.add("scale-95");
-            setTimeout(() => {
-                modal.classList.add("hidden");
-            }, 200);
-        }
-
-        function exportCSV() {
-            let csv = "\uFEFF";
-            let dates = [];
-            let current = new Date(appState.year, 0, 1);
-            while (current.getFullYear() === appState.year) {
-                dates.push(new Date(current));
-                current.setDate(current.getDate() + 1);
-            }
-
-            let header = ["Mitarbeiter", "Rolle", "Jahresurlaub", "Resturlaub Vorjahr", "Genommen", "Resturlaub Verbleibend"];
-            dates.forEach(d => header.push(`${d.getDate()}.${d.getMonth() + 1}.${appState.year}`));
-            csv += header.join(";") + "\n";
-
-            appState.employees.forEach(emp => {
-                const stats = calculateEmployeeStats(emp, appState.year, appState.state);
-                let row = [`"${emp.name}"`, `"${emp.role || ''}"`, emp.vacationDays, emp.restDays, stats.taken, stats.remaining];
-                dates.forEach(d => {
-                    const iso = formatDateISO(d);
-                    row.push(`"${emp.entries ? (emp.entries[iso] || "") : ""}"`);
-                });
-                csv += row.join(";") + "\n";
-            });
-
-            downloadFile(csv, `Urlaubsplan_${appState.year}_${appState.state}.csv`, 'text/csv;charset=utf-8;');
-        }
-
-        function exportJSON() {
-            const jsonStr = JSON.stringify(appState, null, 2);
-            downloadFile(jsonStr, `Urlaubsplaner_Backup_${appState.year}.json`, 'application/json');
-        }
-
-        function importJSON(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (data.employees) appState.employees = data.employees;
-                    if (data.year) appState.year = data.year;
-                    if (data.state) appState.state = data.state;
-                    if (data.ferienState) appState.ferienState = data.ferienState;
-                    render();
-                    saveToCloud();
-                    alert("Backup erfolgreich wiederhergestellt!");
-                } catch (err) {
-                    alert("Fehler beim Lesen der JSON-Datei.");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function downloadFile(content, fileName, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        window.onload = () => {
-            initUI();
-        };
-    </script>
-</body>
-</html>
