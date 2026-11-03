@@ -77,7 +77,7 @@
                             <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Verbinde...
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500">Ferien, Brückentage & Abwesenheiten (npoint.io Cloud)</p>
+                    <p class="text-xs text-slate-500">Ferien, Brückentage & Abwesenheiten (GitHub Cloud)</p>
                 </div>
             </div>
 
@@ -125,11 +125,6 @@
 
             <!-- Action Controls -->
             <div class="flex items-center gap-2 ml-auto flex-wrap">
-                <button id="btn-refresh" title="Daten neu laden" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl transition border border-slate-200">
-                    <i class="fa-solid fa-rotate text-sky-600"></i>
-                    <span>Aktualisieren</span>
-                </button>
-
                 <button id="btn-bridge-modal" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-sm transition">
                     <i class="fa-solid fa-bolt"></i>
                     <span>Brückentage-Radar</span>
@@ -356,7 +351,6 @@
                 </button>
             </div>
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4" id="bridge-list">
-                <!-- Dynamically generated -->
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
                 <button type="button" class="modal-bridge-close px-4 py-2 bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl hover:bg-slate-300 transition">Schließen</button>
@@ -366,7 +360,13 @@
 
     <!-- App Logic Script -->
     <script>
-        const NPOINT_URL = "https://api.npoint.io/f928eb85ffc7f2e6e86b";
+        // --- GITHUB CONFIGURATION ---
+        const GITHUB_USERNAME  = "crazytimo";
+        const GITHUB_REPO      = "Urlaubsplaner-QW";
+        const GITHUB_FILE_PATH = "data.json";
+        const GITHUB_TOKEN     = "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"; // Hier github_pat_... eintragen
+
+        let currentFileSHA = "";
 
         const GERMAN_STATES = {
             "BW": "Baden-Württemberg",
@@ -395,13 +395,6 @@
                     { name: "Sommerferien", start: "2026-07-30", end: "2026-09-12" },
                     { name: "Herbstferien", start: "2026-10-26", end: "2026-10-30" },
                     { name: "Weihnachtsferien", start: "2026-12-23", end: "2027-01-09" }
-                ],
-                "2027": [
-                    { name: "Osterferien", start: "2027-03-22", end: "2027-04-03" },
-                    { name: "Pfingstferien", start: "2027-05-18", end: "2027-05-29" },
-                    { name: "Sommerferien", start: "2027-07-29", end: "2027-09-11" },
-                    { name: "Herbstferien", start: "2027-11-02", end: "2027-11-06" },
-                    { name: "Weihnachtsferien", start: "2027-12-23", end: "2028-01-08" }
                 ]
             },
             "RP": {
@@ -410,12 +403,6 @@
                     { name: "Sommerferien", start: "2026-06-29", end: "2026-08-07" },
                     { name: "Herbstferien", start: "2026-10-05", end: "2026-10-16" },
                     { name: "Weihnachtsferien", start: "2026-12-23", end: "2027-01-08" }
-                ],
-                "2027": [
-                    { name: "Osterferien", start: "2027-03-22", end: "2027-04-02" },
-                    { name: "Sommerferien", start: "2027-07-05", end: "2027-08-13" },
-                    { name: "Herbstferien", start: "2027-10-11", end: "2027-10-22" },
-                    { name: "Weihnachtsferien", start: "2027-12-22", end: "2028-01-07" }
                 ]
             },
             "HE": {
@@ -424,12 +411,6 @@
                     { name: "Sommerferien", start: "2026-06-29", end: "2026-08-07" },
                     { name: "Herbstferien", start: "2026-10-05", end: "2026-10-17" },
                     { name: "Weihnachtsferien", start: "2026-12-23", end: "2027-01-13" }
-                ],
-                "2027": [
-                    { name: "Osterferien", start: "2027-03-22", end: "2027-04-03" },
-                    { name: "Sommerferien", start: "2027-07-05", end: "2027-08-13" },
-                    { name: "Herbstferien", start: "2027-10-11", end: "2027-10-23" },
-                    { name: "Weihnachtsferien", start: "2027-12-23", end: "2028-01-08" }
                 ]
             }
         };
@@ -456,72 +437,98 @@
             activeStatus: "U",
             employees: [
                 { id: "1", name: "Anna Schmidt", role: "Frontend Dev", vacationDays: 30, restDays: 2, entries: {} },
-                { id: "2", name: "Markus Weber", role: "Projektleiter", vacationDays: 30, restDays: 0, entries: {} },
-                { id: "3", name: "Julia Meyer", role: "UX Designer", vacationDays: 28, restDays: 4, entries: {} },
-                { id: "4", name: "Tobias Fischer", role: "DevOps", vacationDays: 30, restDays: 1, entries: {} }
+                { id: "2", name: "Markus Weber", role: "Projektleiter", vacationDays: 30, restDays: 0, entries: {} }
             ]
         };
 
-        function updateSyncBadge(status) {
+        // --- GITHUB API SPEICHER- & LADE-FUNKTIONEN ---
+
+        function updateSyncBadge(success, message) {
             const badge = document.getElementById("sync-badge");
-            if (status === 'sync') {
+            if (!badge) return;
+            if (success) {
                 badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Synchronisiert`;
-            } else if (status === 'saving') {
-                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Speichert...`;
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${message}`;
             } else {
                 badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200";
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Offline / Fehler`;
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${message}`;
             }
         }
 
         async function loadFromCloud() {
-            updateSyncBadge('saving');
+            const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+            
             try {
-                const response = await fetch(NPOINT_URL);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.employees) {
-                        appState.employees = data.employees;
-                        if (data.year) appState.year = data.year;
-                        if (data.state) appState.state = data.state;
-                        if (data.ferienState) appState.ferienState = data.ferienState;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
                     }
-                    updateSyncBadge('sync');
+                });
+
+                if (response.ok) {
+                    const fileData = await response.json();
+                    currentFileSHA = fileData.sha;
+                    
+                    const decodedContent = decodeURIComponent(escape(atob(fileData.content)));
+                    const data = JSON.parse(decodedContent);
+
+                    if (data.employees) appState.employees = data.employees;
+                    if (data.year) appState.year = data.year;
+                    if (data.state) appState.state = data.state;
+                    if (data.ferienState) appState.ferienState = data.ferienState;
+
+                    updateSyncBadge(true, "GitHub Cloud Synced");
                     render();
                 } else {
-                    updateSyncBadge('error');
+                    console.error("Fehler beim Laden von GitHub:", response.statusText);
+                    updateSyncBadge(false, "Ladefehler GitHub");
                 }
             } catch (e) {
-                console.error("Fehler beim Laden von npoint:", e);
-                updateSyncBadge('error');
+                console.error("Netzwerkfehler GitHub API:", e);
+                updateSyncBadge(false, "Netzwerkfehler");
             }
         }
 
         async function saveToCloud() {
-            updateSyncBadge('saving');
+            const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+            updateSyncBadge(false, "Speichere...");
+            
+            const jsonString = JSON.stringify(appState, null, 2);
+            const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+            const bodyData = {
+                message: "Update Urlaubsplaner data via Web-App",
+                content: encodedContent,
+                sha: currentFileSHA
+            };
+
             try {
-                const response = await fetch(NPOINT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        year: appState.year,
-                        state: appState.state,
-                        ferienState: appState.ferienState,
-                        employees: appState.employees
-                    })
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify(bodyData)
                 });
+
                 if (response.ok) {
-                    updateSyncBadge('sync');
+                    const responseData = await response.json();
+                    currentFileSHA = responseData.content.sha;
+                    updateSyncBadge(true, "Gespeichert in GitHub");
                 } else {
-                    updateSyncBadge('error');
+                    console.error("Fehler beim Speichern in GitHub:", response.statusText);
+                    updateSyncBadge(false, "Fehler beim Speichern");
                 }
             } catch (e) {
-                console.error("Fehler beim Speichern auf npoint:", e);
-                updateSyncBadge('error');
+                console.error("Fehler beim Senden an GitHub API:", e);
+                updateSyncBadge(false, "Netzwerkfehler");
             }
         }
+
+        // --- KALENDER UND LOGIK ---
 
         function getEasterSunday(year) {
             const a = year % 19;
@@ -573,12 +580,6 @@
             if (["TH"].includes(state)) addHoliday(new Date(year, 8, 20), "Weltkindertag");
             if (["BB", "HB", "HH", "MV", "NI", "SN", "ST", "SH", "TH"].includes(state)) addHoliday(new Date(year, 9, 31), "Reformationstag");
             if (["BW", "BY", "NW", "RP", "ST"].includes(state)) addHoliday(new Date(year, 10, 1), "Allerheiligen");
-            if (state === "SN") {
-                const nov23 = new Date(year, 10, 23);
-                const dayOfWeek = nov23.getDay();
-                const diff = (dayOfWeek - 3 + 7) % 7 || 7;
-                addHoliday(new Date(year, 10, 23 - diff), "Buß- und Bettag");
-            }
 
             return holidays;
         }
@@ -737,7 +738,6 @@
                 }
             }
 
-            // Header Row
             const trHeader = document.createElement("tr");
             
             const thEmp = document.createElement("th");
@@ -793,7 +793,6 @@
 
             thead.appendChild(trHeader);
 
-            // Table Body Rows
             appState.employees.forEach(emp => {
                 const tr = document.createElement("tr");
                 tr.className = "hover:bg-slate-50/50 transition";
@@ -932,17 +931,6 @@
                         startDate: formatDateISO(mon),
                         endDate: formatDateISO(mon)
                     });
-                } else if (dayOfWeek === 3) {
-                    const thu = new Date(date); thu.setDate(thu.getDate() + 1);
-                    const fri = new Date(date); fri.setDate(fri.getDate() + 2);
-                    bridgeOpportunities.push({
-                        title: `${name} (Mittwoch)`,
-                        vacationDaysNeeded: 2,
-                        daysOff: 5,
-                        rangeText: `Donnerstag & Freitag (${thu.getDate()}.${thu.getMonth()+1}. - ${fri.getDate()}.${fri.getMonth()+1}.)`,
-                        startDate: formatDateISO(thu),
-                        endDate: formatDateISO(fri)
-                    });
                 }
             });
 
@@ -957,7 +945,7 @@
             const opportunities = generateBridgeDays();
 
             if (opportunities.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-500">Keine optimalen unterjährigen Brückentage für dieses Jahr / Bundesland gefunden.</div>`;
+                container.innerHTML = `<div class="p-8 text-center text-slate-500">Keine unterjährigen Brückentage für dieses Jahr / Bundesland gefunden.</div>`;
             } else {
                 opportunities.forEach(opp => {
                     const card = document.createElement("div");
@@ -1043,8 +1031,6 @@
         };
 
         function setupEventListeners() {
-            document.getElementById("btn-refresh").onclick = loadFromCloud;
-
             document.getElementById("prev-year").onclick = () => {
                 appState.year--;
                 render();
