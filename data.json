@@ -12,7 +12,8 @@
       "vacationDays": 30,
       "restDays": 2,
       "entries": {
-        "2026-01-07": "U"
+        "2026-01-07": "U",
+        "2026-01-08": "U"
       }
     },
     {
@@ -21,7 +22,10 @@
       "role": "Projektleiter",
       "vacationDays": 30,
       "restDays": 0,
-      "entries": {}
+      "entries": {
+        "2026-01-08": "U",
+        "2026-01-12": "U"
+      }
     }
   ]
 }
