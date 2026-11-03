@@ -6,19 +6,6 @@
   "activeStatus": "U",
   "employees": [
     {
-      "id": "2",
-      "name": "Markus Weber",
-      "role": "Projektleiter",
-      "vacationDays": 30,
-      "restDays": 0,
-      "entries": {
-        "2026-01-08": "U",
-        "2026-01-12": "U",
-        "2026-01-13": "U",
-        "2026-01-15": "U"
-      }
-    },
-    {
       "id": "d426133f-87fb-488c-9e16-1c7bac36ec7e",
       "name": "Timo",
       "role": "Qualität",
