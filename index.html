@@ -366,7 +366,97 @@
         const GITHUB_FILE_PATH = "data.json";
         const GITHUB_TOKEN     = "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"; // Hier github_pat_... eintragen
 
-        let currentFileSHA = "";
+       let currentFileSHA = ""; // Wird von GitHub benötigt, um bestehende Dateien zu überschreiben
+
+// 1. Laden der Daten direkt aus dem GitHub Repository
+async function loadFromGitHub() {
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (response.ok) {
+            const fileData = await response.json();
+            currentFileSHA = fileData.sha; // SHA-Hash sichern für spätere Updates
+            
+            // Base64-dekodierten Inhalt verarbeiten (UTF-8 Unterstützung)
+            const decodedContent = decodeURIComponent(escape(atob(fileData.content)));
+            const data = JSON.parse(decodedContent);
+
+            if (data.employees) appState.employees = data.employees;
+            if (data.year) appState.year = data.year;
+            if (data.state) appState.state = data.state;
+            if (data.ferienState) appState.ferienState = data.ferienState;
+
+            updateSyncBadge(true, "GitHub Sync Active");
+            render();
+        } else {
+            console.error("Fehler beim Laden von GitHub:", response.statusText);
+            updateSyncBadge(false, "Ladefehler (GitHub)");
+        }
+    } catch (e) {
+        console.error("Netzwerkfehler GitHub API:", e);
+        updateSyncBadge(false, "Netzwerk blockiert");
+    }
+}
+
+// 2. Speichern der Daten zurück in das GitHub Repository
+async function saveToGitHub() {
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+    
+    // JSON in Base64 umwandeln (UTF-8 sicher)
+    const jsonString = JSON.stringify(appState, null, 2);
+    const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+    const bodyData = {
+        message: "Update Urlaubsplaner Data via Web-App",
+        content: encodedContent,
+        sha: currentFileSHA // Benötigt, um die existierende Datei zu aktualisieren
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify(bodyData)
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            currentFileSHA = responseData.content.sha; // Neuen SHA nach dem Speichern aktualisieren
+            updateSyncBadge(true, "Gespeichert in GitHub");
+        } else {
+            console.error("Fehler beim Speichern in GitHub:", response.statusText);
+            updateSyncBadge(false, "Speicherfehler");
+        }
+    } catch (e) {
+        console.error("Fehler beim Senden an GitHub API:", e);
+        updateSyncBadge(false, "Netzwerkfehler");
+    }
+}
+
+// Hilfsfunktion zur Anzeige des Status-Badges
+function updateSyncBadge(success, message) {
+    const badge = document.getElementById("sync-badge");
+    if (!badge) return;
+    
+    if (success) {
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${message}`;
+    } else {
+        badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${message}`;
+    }
+}
 
         const GERMAN_STATES = {
             "BW": "Baden-Württemberg",
