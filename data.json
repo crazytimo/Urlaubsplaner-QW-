@@ -10,11 +10,8 @@
       "name": "Timo",
       "role": "Qualität",
       "vacationDays": 35,
-      "restDays": 0,
-      "entries": {
-        "2027-01-04": "U",
-        "2027-01-05": "U"
-      }
+      "restDays": 2,
+      "entries": {}
     }
   ]
 }
