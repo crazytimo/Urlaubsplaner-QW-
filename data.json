@@ -24,7 +24,9 @@
       "role": "QS",
       "vacationDays": 28,
       "restDays": 0,
-      "entries": {}
+      "entries": {
+        "2027-01-04": "K"
+      }
     }
   ]
 }
