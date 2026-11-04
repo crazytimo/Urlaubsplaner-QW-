@@ -17,6 +17,14 @@
         "2027-01-07": "U",
         "2027-01-08": "U"
       }
+    },
+    {
+      "id": "91cbc1b8-5162-4b85-ae18-b8e7d938cd72",
+      "name": "Lin",
+      "role": "QS",
+      "vacationDays": 28,
+      "restDays": 0,
+      "entries": {}
     }
   ]
 }
