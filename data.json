@@ -1,7 +1,7 @@
 {
   "year": 2027,
   "state": "BW",
-  "ferienState": "OFF",
+  "ferienState": "BW",
   "selectedMonth": 0,
   "activeStatus": "U",
   "employees": [
