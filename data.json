@@ -2,8 +2,8 @@
   "year": 2027,
   "state": "BW",
   "ferienState": "RP",
-  "selectedMonth": 5,
-  "activeStatus": "U",
+  "selectedMonth": 0,
+  "activeStatus": "HO",
   "employees": [
     {
       "id": "d426133f-87fb-488c-9e16-1c7bac36ec7e",
@@ -43,7 +43,8 @@
         "2027-05-03": "U",
         "2027-05-04": "U",
         "2027-05-05": "U",
-        "2027-05-07": "U"
+        "2027-05-07": "U",
+        "2027-01-15": "HO"
       }
     }
   ]
