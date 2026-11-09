@@ -15,8 +15,7 @@
         "2027-01-04": "U",
         "2027-01-05": "U",
         "2027-01-07": "U",
-        "2027-01-08": "U",
-        "2027-01-14": "U"
+        "2027-01-08": "U"
       }
     },
     {
@@ -24,6 +23,14 @@
       "name": "Lin",
       "role": "QS",
       "vacationDays": 28,
+      "restDays": 0,
+      "entries": {}
+    },
+    {
+      "id": "1da1623e-afcd-42cc-b1c6-392beb08c71d",
+      "name": "Tambrey",
+      "role": "Qualität",
+      "vacationDays": 35,
       "restDays": 0,
       "entries": {}
     }
