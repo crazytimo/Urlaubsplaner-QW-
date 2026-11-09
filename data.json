@@ -2,7 +2,7 @@
   "year": 2027,
   "state": "BW",
   "ferienState": "RP",
-  "selectedMonth": 0,
+  "selectedMonth": 4,
   "activeStatus": "U",
   "employees": [
     {
@@ -33,7 +33,9 @@
       "vacationDays": 35,
       "restDays": 0,
       "entries": {
-        "2027-01-25": "U"
+        "2027-01-25": "U",
+        "2027-01-26": "U",
+        "2027-04-26": "U"
       }
     }
   ]
